@@ -74,6 +74,37 @@ public class StatusController {
             }
         }
 
+        if (threshold == null && (led == null || led != 1) && (sensorIds == null || sensorIds.isEmpty())) {
+            List<Sensor> sensors = sensorService.getAllSensors();
+            List<SensorResponse> sensorResponses = sensors.stream()
+                    .map(sensor -> new SensorResponse(
+                            sensor.getId(),
+                            sensor.getName(),
+                            sensor.readValue(),
+                            sensor.getUnit(),
+                            sensor.getPos()
+                    ))
+                    .collect(Collectors.toList());
+
+            response.put("sensors", sensorResponses);
+
+            Threshold th = ledService.getThreshold();
+            if (th != null) {
+                List<ThresholdResponse> thresholds = new ArrayList<>();
+                thresholds.add(new ThresholdResponse(
+                        th.getSensor(),
+                        th.getVal(),
+                        th.getMode()
+                ));
+                response.put("thresholds", thresholds);
+            }
+
+            List<LedResponse> leds = new ArrayList<>();
+            leds.add(new LedResponse(ledService.getStatus(), ledService.getLedPos()));
+            response.put("leds", leds);
+
+        }
+
         return ResponseEntity.ok(response);
     }
 }
